@@ -1,0 +1,40 @@
+configure
+set system host-name csrx02
+set system root-authentication encrypted-password *disabled*
+set system services ssh root-login allow
+set interfaces ge-0/0/0 unit 0 family inet address 172.16.2.2/24
+set interfaces ge-0/0/0 description trust
+set interfaces ge-0/0/1 unit 0 family inet address 172.16.30.2/24
+set interfaces ge-0/0/1 description untrust
+set interfaces ge-0/0/2 unit 0 family inet address 172.16.21.2/24
+set interfaces ge-0/0/2 description dmz
+set interfaces ge-0/0/3 unit 0 family inet address 172.16.22.2/24
+set interfaces ge-0/0/3 description noc
+set routing-options static route 0.0.0.0/0 next-hop 172.16.30.1/32
+set security nat source rule-set trust-to-untrust from zone trust
+set security nat source rule-set trust-to-untrust to zone untrust
+set security nat source rule-set trust-to-untrust rule snat1 match source-address 0.0.0.0/0
+set security nat source rule-set trust-to-untrust rule snat1 then source-nat interface
+set security nat source rule-set dmz-to-untrust from zone dmz
+set security nat source rule-set dmz-to-untrust to zone untrust
+set security nat source rule-set dmz-to-untrust rule snat2 match source-address 0.0.0.0/0
+set security nat source rule-set dmz-to-untrust rule snat2 then source-nat interface
+set security nat source rule-set noc-to-untrust from zone noc
+set security nat source rule-set noc-to-untrust to zone untrust
+set security nat source rule-set noc-to-untrust rule snat3 match source-address 0.0.0.0/0
+set security nat source rule-set noc-to-untrust rule snat3 then source-nat interface
+set security policies global policy permit-all match source-address any
+set security policies global policy permit-all match destination-address any
+set security policies global policy permit-all match application any
+set security policies global policy permit-all then permit
+set security policies default-policy permit-all
+set security zones security-zone untrust host-inbound-traffic system-services all
+set security zones security-zone untrust interfaces ge-0/0/1.0
+set security zones security-zone trust host-inbound-traffic system-services all
+set security zones security-zone trust interfaces ge-0/0/0.0
+set security zones security-zone dmz host-inbound-traffic system-services all
+set security zones security-zone dmz interfaces ge-0/0/2.0
+set security zones security-zone noc host-inbound-traffic system-services all
+set security zones security-zone noc interfaces ge-0/0/3.0
+commit and-quit
+

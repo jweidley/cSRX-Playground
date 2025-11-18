@@ -1,0 +1,85 @@
+######################################################################################
+# cSRX Demo Network:
+######################################################################################
+services:
+  csrx01:
+    image: csrx:24.4R2-S1.7
+    container_name: csrx01
+    hostname: csrx01
+    privileged: true
+    networks:
+      left_trust:
+        ipv4_address: 172.16.1.2
+      untrust:
+        ipv4_address: 10.0.0.2
+    volumes:
+      - csrx01-config:/config
+      - csrx01-varlog:/var/log
+    environment:
+      CSRX_SIZE: large
+      CSRX_PORT_NUM: "3"
+      CSRX_ROOT_PASSWORD: juniper123
+  csrx02:
+    image: csrx:24.4R2-S1.7
+    container_name: csrx02
+    hostname: csrx02
+    privileged: true
+    networks:
+      right_trust:
+        ipv4_address: 172.16.2.2
+      untrust:
+        ipv4_address: 10.0.0.3
+    volumes:
+      - csrx02-config:/config
+      - csrx02-varlog:/var/log
+    environment:
+      CSRX_SIZE: large
+      CSRX_PORT_NUM: "3"
+      CSRX_ROOT_PASSWORD: juniper123
+  left_pc:
+    image: alpine:latest
+    tty: true
+    networks:
+      left_trust:
+        ipv4_address: 172.16.1.10
+  right_pc:
+    image: alpine:latest
+    tty: true
+    networks:
+      right_trust:
+        ipv4_address: 172.16.2.10
+volumes:
+  csrx01-config: {}
+  csrx01-varlog: {}
+  csrx02-config: {}
+  csrx02-varlog: {}
+networks:
+  left_trust:
+    name: left_trust
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.enable_ip_masquerade: "true"
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.1.0/24
+  right_trust:
+    name: right_trust
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.enable_ip_masquerade: "true"
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.2.0/24
+  untrust:
+    name: untrust
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.enable_ip_masquerade: "true"
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.0.0/24
+
+

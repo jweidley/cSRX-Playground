@@ -1,0 +1,58 @@
+######################################################################################
+# cSRX Demo Network:
+######################################################################################
+services:
+  csrx01:
+    image: csrx:25.2R1.9
+    container_name: csrx01
+    hostname: csrx01
+    privileged: true
+    networks:
+      mgmt_net:
+        ipv4_address: 10.0.254.10
+      untrust:
+        ipv4_address: 10.0.0.2
+      left_trust:
+        ipv4_address: 172.16.1.2
+    volumes:
+      - csrx01-config:/config
+      - csrx01-varlog:/var/log
+    environment:
+      CSRX_SIZE: large
+      CSRX_PORT_NUM: "3"
+      CSRX_ROOT_PASSWORD: juniper123
+  left_pc:
+    image: alpine:latest
+    tty: true
+    networks:
+      left_trust:
+        ipv4_address: 172.16.1.10
+volumes:
+  csrx01-config: {}
+  csrx01-varlog: {}
+networks:
+  mgmt_net:
+    name: mgmt_net
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.254.0/24
+  left_trust:
+    name: left_trust
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.1.0/24
+          gateway: 172.16.1.2
+  untrust:
+    name: untrust
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.enable_ip_masquerade: "true"
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.0.0/24
+

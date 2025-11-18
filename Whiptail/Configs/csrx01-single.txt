@@ -1,0 +1,26 @@
+configure
+set system host-name csrx01
+set system root-authentication encrypted-password *disabled*
+set system services ssh root-login allow
+set interfaces ge-0/0/0 unit 0 family inet address 172.16.1.2/24
+set interfaces ge-0/0/0 description trust
+set interfaces ge-0/0/1 unit 0 family inet address 10.0.1.2/24
+set interfaces ge-0/0/1 description untrust
+set interfaces ge-0/0/2 unit 0 family inet address 172.16.11.2/24
+set interfaces ge-0/0/2 description dmz
+set routing-options static route 0.0.0.0/0 next-hop 10.0.1.1/32
+set security nat source rule-set trust-to-untrust from zone trust
+set security nat source rule-set trust-to-untrust to zone untrust
+set security nat source rule-set trust-to-untrust rule source-nat-rule match source-address 0.0.0.0/0
+set security nat source rule-set trust-to-untrust rule source-nat-rule then source-nat interface
+set security policies global policy permit-all match source-address any
+set security policies global policy permit-all match destination-address any
+set security policies global policy permit-all match application any
+set security policies global policy permit-all then permit
+set security zones security-zone untrust host-inbound-traffic system-services all
+set security zones security-zone untrust interfaces ge-0/0/1.0
+set security zones security-zone trust host-inbound-traffic system-services all
+set security zones security-zone trust interfaces ge-0/0/0.0
+set security zones security-zone dmz host-inbound-traffic system-services all
+set security zones security-zone dmz interfaces ge-0/0/2.0
+commit and-quit

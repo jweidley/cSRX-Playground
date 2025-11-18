@@ -1,0 +1,13 @@
+configure
+set system host-name csrx02
+set system root-authentication encrypted-password *disabled*
+set system services ssh root-login allow
+set interfaces ge-0/0/0 unit 0
+set interfaces ge-0/0/0 description untrust
+set interfaces ge-0/0/1 unit 0
+set interfaces ge-0/0/1 description trust
+set security policies default-policy permit-all
+set security zones security-zone trust interfaces ge-0/0/1.0
+set security zones security-zone untrust interfaces ge-0/0/0.0
+commit and-quit
+

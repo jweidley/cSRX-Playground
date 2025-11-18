@@ -1,0 +1,43 @@
+configure
+set system host-name csrx02
+set system root-authentication encrypted-password *disabled*
+set system services ssh root-login allow
+set interfaces ge-0/0/0 unit 0 family inet address 172.16.2.2/24
+set interfaces ge-0/0/0 description trust
+set interfaces ge-0/0/1 unit 0 family inet address 10.0.2.2/24
+set interfaces ge-0/0/1 description untrust
+set interfaces st0 unit 0 family inet
+set interfaces st0 description "Secure Tunnel Interface"
+set routing-options static route 0.0.0.0/0 next-hop 10.0.2.1/32
+set security ike proposal baseline-prop authentication-method pre-shared-keys
+set security ike proposal baseline-prop lifetime-seconds 86400
+set security ike policy baseline-policy proposals baseline-prop
+set security ike policy baseline-policy pre-shared-key ascii-text juniper123
+set security ike gateway csrx01 ike-policy baseline-policy
+set security ike gateway csrx01 dynamic inet 10.0.1.2
+set security ike gateway csrx01 local-identity inet 10.0.2.2
+set security ike gateway csrx01 external-interface ge-0/0/1
+set security ike gateway csrx01 local-address 10.0.2.2
+set security ike gateway csrx01 version v2-only
+set security ipsec proposal baseline-ipsec-prop lifetime-seconds 86400
+set security ipsec policy baseline-ipsec-policy proposals baseline-ipsec-prop
+set security ipsec vpn csrx01 bind-interface st0.0
+set security ipsec vpn csrx01 ike gateway csrx01
+set security ipsec vpn csrx01 ike ipsec-policy baseline-ipsec-policy
+set security ipsec vpn csrx01 traffic-selector ts1 local-ip 172.16.2.0/24
+set security ipsec vpn csrx01 traffic-selector ts1 remote-ip 172.16.1.0/24
+set security ipsec vpn csrx01 establish-tunnels immediately
+set security nat source rule-set trust-to-untrust from zone trust
+set security nat source rule-set trust-to-untrust to zone untrust
+set security nat source rule-set trust-to-untrust rule source-nat-rule match source-address 0.0.0.0/0
+set security nat source rule-set trust-to-untrust rule source-nat-rule then source-nat interface
+set security policies global policy permit-all match source-address any
+set security policies global policy permit-all match destination-address any
+set security policies global policy permit-all match application any
+set security policies global policy permit-all then permit
+set security zones security-zone untrust host-inbound-traffic system-services all
+set security zones security-zone untrust interfaces st0.0
+set security zones security-zone untrust interfaces ge-0/0/1.0
+set security zones security-zone trust host-inbound-traffic system-services all
+set security zones security-zone trust interfaces ge-0/0/0.0
+commit and-quit
